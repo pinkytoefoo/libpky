@@ -67,11 +67,14 @@ int main()
 	}
 
 	/* expected output:
+	 * abc
+	 * abcdef
+	 * abcdefghi
 	 * 11
 	 * hd
 	 * hello world
 	 * aello world
-	 * new string
+	 * 10
 	 * third but really fourth by line 28
 	 * Index at 100 is out of range
 	*/
