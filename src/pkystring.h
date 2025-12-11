@@ -1,8 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <ostream>
 
-namespace pky {
+namespace pky
+{
 	/*
 	 * TODO:
 	 *   - add sso
@@ -15,7 +17,7 @@ namespace pky {
 	public:
 		string();
 		string(const char* ptr);
-		string(const string& old);
+		string(const string& old) noexcept;
 		string& operator=(string&& other) noexcept;
 		~string();
 
@@ -28,6 +30,8 @@ namespace pky {
 
 		// operators
 		char& operator[](uint32_t index);
+
+		friend std::ostream& operator<<(std::ostream& stream, const string& mystring);
 	private:
 		void helpercpy(void* dest, const void* src, uint32_t len) const;
 

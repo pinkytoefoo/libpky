@@ -1,21 +1,20 @@
 #include <stdexcept>
 #include <format>
-#include <iostream>
 
 #include "pkystring.h"
 
-namespace pky {
-	/*
-	 * TODO:
+namespace pky
+{
+	/* TODO:
 	 *   - add sso
 	 *   - improve move semantics
-	 *   - add std::cout functionality
 	 *   - implement more std::string methods
 	 */
 	string::string()
 	{
 		m_Length = 0;
-		m_Data = nullptr;
+		m_Data = new char[1];
+		m_Data[0] = '\0';
 	}
 
 	string::string(const char* ptr)
@@ -25,21 +24,27 @@ namespace pky {
 		helpercpy(m_Data, ptr, m_Length);
 	}
 
-	string::string(const string& old)
-		: m_Length(old.m_Length)
-		, m_Data(new char[old.m_Length + 1])
+	string::string(const string& other) noexcept
+		: m_Length(other.m_Length)
+		, m_Data(new char[other.m_Length + 1])
 	{
-		helpercpy(m_Data, old.m_Data, m_Length);
+		helpercpy(m_Data, other.m_Data, m_Length);
 	}
 
-	string& string::operator=(string&& other) noexcept
+	string& string::operator=(string&& old) noexcept
 	{
-		if (this != &other) {
+		if (this != &old) {
+			// set current string
+			m_Length = old.m_Length;
 			delete[] m_Data;
-			m_Data = other.m_Data;
-			m_Length = other.m_Length;
-			other.m_Data = nullptr;
-			other.m_Length = 0;
+			m_Data = old.m_Data;
+
+			// invalidate old string
+			old.m_Length = 0;
+
+			// may fix some issues, but keep current implementation
+			old.m_Data = new char[1];
+			old.m_Data[0] = '\0';
 		}
 		return *this;
 	}
@@ -53,18 +58,23 @@ namespace pky {
 	{
 		if (m_Data != nullptr)
 		{
+			m_Length = 0;
 			delete[] m_Data;
-			m_Data = nullptr;
+			m_Data = new char[1];
+			m_Data[0] = '\0';
 		}
-
 
 		m_Length = 0;
 	}
 	
 	char& string::at(uint32_t index)
 	{
-		if (index < 0 || index >= m_Length)
+		// no need to check negative indexes (index is unsigned)
+		if (index >= m_Length)
 		{
+			// might have to throw for negative numbers
+			// because compilers wraps negative numbers
+			// leading to misleading errors
 			throw std::out_of_range(std::format("Index at {} is out of range", index));
 		}
 
@@ -73,6 +83,9 @@ namespace pky {
 
 	uint32_t string::_strlen(const char* ptr)
 	{
+		if (ptr == nullptr)
+			return 0;
+
 		uint32_t len = 0;
 		for (; ptr[len] != '\0'; len++);
 		return len;
@@ -94,11 +107,15 @@ namespace pky {
 		char* cdest = (char*)dest;
 		const char* csrc = (const char*)src;
 
-		for (uint32_t i = 0; i < ((len + 1) * (uint32_t)sizeof(char)); i++)
+		for (uint32_t i = 0; i < len + 1; i++)
 		{
 			cdest[i] = csrc[i];
 		}
+	}
 
-		dest = (void*)cdest;
+	std::ostream& operator<<(std::ostream& stream, const string& mystring)
+	{
+		stream << mystring.m_Data;
+		return stream;
 	}
 }
