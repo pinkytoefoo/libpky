@@ -31,7 +31,7 @@ int main()
 	char* newa = (char*)"abc";
 	const char* a = (char*)"def";
 	char* newerer = pky::_strcat(newa, a);
-	std::cout << newerer << '\n';
+	println(newerer);
 
 	// construct, copy, move
 	pky::string first("hello world");
@@ -71,9 +71,9 @@ int main()
 	}
 
 	/* expected output:
-	 * abc
 	 * abcdef
-	 * abcdefghi
+	 * abc
+	 * abc
 	 * 11
 	 * hd
 	 * hello world
