@@ -3,4 +3,4 @@
 *.vcxproj
 *vcxproj.*
 bin
-obj
+bin-obj

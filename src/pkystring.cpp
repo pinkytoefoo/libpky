@@ -1,5 +1,7 @@
 #include <stdexcept>
 #include <format>
+#include <string.h>
+#include <iostream>
 
 #include "pkystring.h"
 
@@ -21,14 +23,14 @@ namespace pky
 	{
 		m_Length = _strlen(ptr);
 		m_Data = new char[m_Length + 1];
-		helpercpy(m_Data, ptr, m_Length);
+		_memcpy(m_Data, ptr, m_Length);
 	}
 
 	string::string(const string& other) noexcept
 		: m_Length(other.m_Length)
 		, m_Data(new char[other.m_Length + 1])
 	{
-		helpercpy(m_Data, other.m_Data, m_Length);
+		_memcpy(m_Data, other.m_Data, m_Length);
 	}
 
 	string& string::operator=(string&& old) noexcept
@@ -41,7 +43,6 @@ namespace pky
 
 			// invalidate old string
 			old.m_Length = 0;
-
 			// may fix some issues, but keep current implementation
 			old.m_Data = new char[1];
 			old.m_Data[0] = '\0';
@@ -56,7 +57,7 @@ namespace pky
 
 	void string::clear()
 	{
-		if (m_Data != nullptr)
+		if (m_Data != nullptr || m_Data != "")
 		{
 			m_Length = 0;
 			delete[] m_Data;
@@ -66,7 +67,7 @@ namespace pky
 
 		m_Length = 0;
 	}
-	
+
 	char& string::at(uint32_t index)
 	{
 		// no need to check negative indexes (index is unsigned)
@@ -81,6 +82,22 @@ namespace pky
 		return m_Data[index];
 	}
 
+	string& string::append(const char* str)
+	{
+		// TODO: implement private _strcat
+		strcat_s(m_Data, sizeof(m_Data) + sizeof(str), str);
+		m_Length = _strlen(m_Data);
+		//m_Data = new char[m_Length + 1];
+		//helpercpy(m_Data, str, m_Length);
+		return *this;
+	}
+
+	// TODO: finish definition
+	/*string& string::insert(uint32_t index, const char* str)
+	{
+
+	}*/
+
 	uint32_t string::_strlen(const char* ptr)
 	{
 		if (ptr == nullptr)
@@ -91,8 +108,41 @@ namespace pky
 		return len;
 	}
 
-	uint32_t string::GetLength() const { return m_Length; }
-	char* string::GetData() const { return m_Data; }
+	// takes into account null terminator
+	// only needs to pass the length as the # of chars
+	void string::_memcpy(void* dest, const void* src, uint32_t charCount) const
+	{
+		char* cdest = (char*)dest;
+		const char* csrc = (const char*)src;
+
+		for (uint32_t i = 0; i < charCount + 1; i++)
+		{
+			cdest[i] = csrc[i];
+		}
+	}
+
+	// TODO: fix fragility and static analysis warning
+	void string::_strcat(char* dest, uint32_t size_in_bytes, char* add)
+	{
+		uint32_t destlength = _strlen(dest);
+		uint32_t addlength = _strlen(dest);
+		uint32_t newlen = destlength + addlength;
+		char* temp = dest;
+		dest = new char[newlen + 1];
+		dest[newlen] = '\0';
+
+		for (uint32_t i = 0; i < destlength; i++)
+		{
+			dest[i] = temp[i];
+		}
+		for (uint32_t j = 0; j < addlength; j++)
+		{
+			dest[destlength + j] = add[j];
+		}
+	}
+
+	uint32_t string::length() const { return m_Length; }
+	char* string::c_str() const { return m_Data; }
 
 	// operators
 	char& string::operator[](uint32_t index)
@@ -100,17 +150,9 @@ namespace pky
 		return m_Data[index];
 	}
 
-	// converts length to byte size, which accounts for null terminator
-	// also bypasses the `sub expression may overflow` warning by casting sizeof
-	void string::helpercpy(void* dest, const void* src, uint32_t len) const
+	string& string::operator+=(const char* s)
 	{
-		char* cdest = (char*)dest;
-		const char* csrc = (const char*)src;
-
-		for (uint32_t i = 0; i < len + 1; i++)
-		{
-			cdest[i] = csrc[i];
-		}
+		return append(s);
 	}
 
 	std::ostream& operator<<(std::ostream& stream, const string& mystring)

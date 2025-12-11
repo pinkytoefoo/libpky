@@ -23,17 +23,21 @@ namespace pky
 
 		void clear();
 		char& at(uint32_t index);
-		uint32_t _strlen(const char* ptr);
+		string& append(const char* str);
+		string& insert(uint32_t index, const char* str);
 
-		uint32_t GetLength() const;
-		char* GetData() const;
+		uint32_t length() const;
+		char* c_str() const;
 
 		// operators
 		char& operator[](uint32_t index);
+		string& operator+=(const char* str);
 
 		friend std::ostream& operator<<(std::ostream& stream, const string& mystring);
+		void _strcat(char* dest, uint32_t size_in_bytes, char* add);
 	private:
-		void helpercpy(void* dest, const void* src, uint32_t len) const;
+		uint32_t _strlen(const char* ptr);
+		void _memcpy(void* dest, const void* src, uint32_t charCount) const;
 
 		uint32_t m_Length;
 		char* m_Data;
