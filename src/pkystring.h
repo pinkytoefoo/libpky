@@ -34,10 +34,7 @@ namespace pky
 		string& operator+=(const char* str);
 
 		friend std::ostream& operator<<(std::ostream& stream, const string& mystring);
-		void _strcat(char* dest, uint32_t size_in_bytes, char* add);
 	private:
-		uint32_t _strlen(const char* ptr);
-		void _memcpy(void* dest, const void* src, uint32_t charCount) const;
 
 		uint32_t m_Length;
 		char* m_Data;

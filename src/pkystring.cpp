@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "pkystring.h"
+#include "pkyhelp.h"
 
 namespace pky
 {
@@ -84,11 +85,8 @@ namespace pky
 
 	string& string::append(const char* str)
 	{
-		// TODO: implement private _strcat
-		strcat_s(m_Data, sizeof(m_Data) + sizeof(str), str);
+		_strcat(m_Data, str);
 		m_Length = _strlen(m_Data);
-		//m_Data = new char[m_Length + 1];
-		//helpercpy(m_Data, str, m_Length);
 		return *this;
 	}
 
@@ -97,49 +95,6 @@ namespace pky
 	{
 
 	}*/
-
-	uint32_t string::_strlen(const char* ptr)
-	{
-		if (ptr == nullptr)
-			return 0;
-
-		uint32_t len = 0;
-		for (; ptr[len] != '\0'; len++);
-		return len;
-	}
-
-	// takes into account null terminator
-	// only needs to pass the length as the # of chars
-	void string::_memcpy(void* dest, const void* src, uint32_t charCount) const
-	{
-		char* cdest = (char*)dest;
-		const char* csrc = (const char*)src;
-
-		for (uint32_t i = 0; i < charCount + 1; i++)
-		{
-			cdest[i] = csrc[i];
-		}
-	}
-
-	// TODO: fix fragility and static analysis warning
-	void string::_strcat(char* dest, uint32_t size_in_bytes, char* add)
-	{
-		uint32_t destlength = _strlen(dest);
-		uint32_t addlength = _strlen(dest);
-		uint32_t newlen = destlength + addlength;
-		char* temp = dest;
-		dest = new char[newlen + 1];
-		dest[newlen] = '\0';
-
-		for (uint32_t i = 0; i < destlength; i++)
-		{
-			dest[i] = temp[i];
-		}
-		for (uint32_t j = 0; j < addlength; j++)
-		{
-			dest[destlength + j] = add[j];
-		}
-	}
 
 	uint32_t string::length() const { return m_Length; }
 	char* string::c_str() const { return m_Data; }

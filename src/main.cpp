@@ -4,7 +4,7 @@
 
 #include "pky.h"
 
-#define TRACK_ALLOCATIONS
+//#define TRACK_ALLOCATIONS
 
 // should copy successfully and avoids double delete
 // https://www.youtube.com/watch?v=BvR1Pgzzr38&t=473s
@@ -25,19 +25,22 @@ int main()
 {
 	// TODO: replace std::cout with googletests
 	std::string test("hello world");
-	//test.lookup
+	//test.append()
 
-	char* a = (char*)"def";
+	// _strcat
 	char* newa = (char*)"abc";
+	const char* a = (char*)"def";
+	char* newerer = pky::_strcat(newa, a);
+	std::cout << newerer << '\n';
+
+	// construct, copy, move
 	pky::string first("hello world");
-	first._strcat(newa, sizeof(newa) + sizeof(a), a);
-	std::cout << newa << '\n';
-	
 	pky::string second = first;
 	pky::string third = "third but really fourth by line 28";
 	pky::string fourth;
-	fourth = std::move(third);
+	fourth = std::move(third); // third is now invalid
 
+	// append, +=
 	pky::string abc = "abc";
 	abc.append("def");
 	println(abc);
@@ -57,6 +60,7 @@ int main()
 	println(first.length());
 	println(fourth);
 
+	// bounds checking for .at
 	try
 	{
 		fourth.at(100);
@@ -77,5 +81,5 @@ int main()
 	 * 10
 	 * third but really fourth by line 28
 	 * Index at 100 is out of range
-	*/
+	 */
 }
