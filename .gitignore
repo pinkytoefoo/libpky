@@ -2,6 +2,12 @@
 *.sln
 *.vcxproj
 *vcxproj.*
+<<<<<<< HEAD
 build
 *.json
 *.txt
+=======
+bin
+bin-obj
+build
+>>>>>>> 78828d1 (cmake)

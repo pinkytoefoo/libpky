@@ -22,12 +22,17 @@ void println(Args && ...args)
     std::cout << '\n';
 }
 
+#include <cxxabi.h>
+
 int main()
 {
     pky::ofstream f("texty.txt");
     //f << "hello\n";
     f.append("thisi snother");
     std::ofstream fa("texty.txt");
+	// TODO: replace std::cout with googletests
+	std::string test("hello world");
+	//test.append()
 
     // TODO: replace std::cout with googletests
     std::string test("hello world");
