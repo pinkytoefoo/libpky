@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <ostream>
+#include <string>
 
 namespace pky
 {
@@ -25,6 +26,7 @@ namespace pky
         char& at(uint32_t index);
         string& append(const char* str);
         string& insert(uint32_t index, const char* str);
+        string substr(size_t pos, size_t len);
 
         uint32_t length() const;
         char* c_str() const;
@@ -35,7 +37,6 @@ namespace pky
 
         friend std::ostream& operator<<(std::ostream& stream, const string& mystring);
     private:
-
         uint32_t m_Length;
         char* m_Data;
     };

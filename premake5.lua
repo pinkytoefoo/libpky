@@ -1,5 +1,5 @@
 -- TODO: see if this file works
-workspace "pky"
+workspace "pky-lib"
     architecture "x86_64"
     startproject "pky_playground"
 

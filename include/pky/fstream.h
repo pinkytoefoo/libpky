@@ -5,6 +5,15 @@
 
 namespace pky
 {
+    class ifstream
+    {
+        ifstream(const std::string& path, bool appendMode = false);
+        ifstream(const char* path, bool appendMode = false);
+        ~ifstream();
+
+        std::string getline();
+    };
+
     class ofstream
     {
     public:
