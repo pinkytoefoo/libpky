@@ -3,8 +3,8 @@
 #include <string.h>
 #include <iostream>
 
-#include "pky_string.h"
-#include "pky_help.h"
+#include "pky/string.h"
+#include "pky/help.h"
 
 namespace pky
 {

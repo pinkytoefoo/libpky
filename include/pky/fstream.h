@@ -8,8 +8,8 @@ namespace pky
     class ofstream
     {
     public:
-        ofstream(const std::string& path, bool appendMode);
-        ofstream(const char* path, bool appendMode);
+        ofstream(const std::string& path, bool appendMode = false);
+        ofstream(const char* path, bool appendMode = false);
         ~ofstream();
 
         void open(const char* path, const char* mode);
@@ -19,6 +19,6 @@ namespace pky
 
         ofstream& operator<<(const std::string& buffer);
     private:
-        FILE* m_File;
+        FILE* m_File = nullptr;
     };
 }

@@ -1,6 +1,7 @@
+-- TODO: see if this file works
 workspace "pky"
     architecture "x86_64"
-    startproject "pky"
+    startproject "pky_playground"
 
     configurations
     {
@@ -8,31 +9,33 @@ workspace "pky"
         "Release"
     }
 
--- outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
 project "pky"
+    kind "StaticLib"
+    language "C++"
+    targetdir "build/lib"
+
+    files {
+        "src/**.cpp",
+        "include/**.h"
+    }
+
+    includedirs {
+        "include"
+    }
+
+project "pky_playground"
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++latest"
-    staticruntime "off"
+    targetdir "build/bin"
 
-    targetdir "%{wks.location}/build/"
-    objdir "%{wks.location}/build/"
-
-    files
-    {
-        "src/**.h",
-        "src/**.cpp",
+    files {
+        "tests/**.cpp"
     }
 
-    includedirs
-    {
-        "src",
+    links {
+        "pky"
     }
 
-    filter "system:windows"
-        systemversion "latest"
-
-        links
-        {
-        }
+    includedirs {
+        "include"
+    }

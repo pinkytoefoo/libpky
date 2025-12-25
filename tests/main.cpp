@@ -3,7 +3,7 @@
 #include <vector>
 #include <fstream>
 
-#include "pky.h"
+#include "pky/pky.h"
 
 //#define TRACK_ALLOCATIONS
 
@@ -22,21 +22,14 @@ void println(Args && ...args)
     std::cout << '\n';
 }
 
-#include <cxxabi.h>
-
 int main()
 {
     pky::ofstream f("texty.txt");
     //f << "hello\n";
-    f.append("thisi snother");
-    std::ofstream fa("texty.txt");
+    // std::ofstream fa("texty.txt");
 	// TODO: replace std::cout with googletests
 	std::string test("hello world");
 	//test.append()
-
-    // TODO: replace std::cout with googletests
-    std::string test("hello world");
-    //test.append()
 
     // _strcat
     char* newa = (char*)"abc";
@@ -94,3 +87,4 @@ int main()
      * Index at 100 is out of range
      */
 }
+

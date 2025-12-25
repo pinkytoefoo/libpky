@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pky_string.h"
-#include "pky_help.h"
-#include "pky_fstream.h"
+#include "pky/string.h"
+#include "pky/help.h"
+#include "pky/fstream.h"
 
 #ifdef TRACK_ALLOCATIONS
 // https://en.cppreference.com/w/cpp/memory/new/operator_new.html

@@ -1,4 +1,5 @@
 .vs
+.cache
 *.sln
 *.vcxproj
 *vcxproj.*
@@ -6,8 +7,3 @@
 build
 *.json
 *.txt
-=======
-bin
-bin-obj
-build
->>>>>>> 78828d1 (cmake)
