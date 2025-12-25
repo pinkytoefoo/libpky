@@ -16,30 +16,22 @@ project "pky"
     cppdialect "C++latest"
     staticruntime "off"
 
-    targetdir "%{wks.location}/bin/"
-    objdir "%{wks.location}/bin-obj/"
+    targetdir "%{wks.location}/build/"
+    objdir "%{wks.location}/build/"
 
     files
-	{
-		"src/**.h",
-		"src/**.cpp",
+    {
+        "src/**.h",
+        "src/**.cpp",
     }
 
     includedirs
-	{
-		"src",
-	}
-
-    filter "configurations:Debug"
-		targetdir "bin/debug"
-        targetdir "bin-obj/debug"
-
-	filter "configurations:Release"
-		targetdir "bin/release"
-        targetdir "bin-obj/release"
+    {
+        "src",
+    }
 
     filter "system:windows"
-		systemversion "latest"
+        systemversion "latest"
 
         links
         {

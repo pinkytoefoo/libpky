@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "pky.h"
 
@@ -11,75 +12,80 @@
 // ^^ more on copy constructors ^^
 //static void PrintString(const pky::string s)
 //{
-//	std::cout << s << '\n';
+//  std::cout << s << '\n';
 //}
 
 template<typename ...Args>
 void println(Args && ...args)
 {
-	(std::cout << ... << args);
-	std::cout << '\n';
+    (std::cout << ... << args);
+    std::cout << '\n';
 }
 
 int main()
 {
-	// TODO: replace std::cout with googletests
-	std::string test("hello world");
-	//test.append()
+    pky::ofstream f("texty.txt");
+    //f << "hello\n";
+    f.append("thisi snother");
+    std::ofstream fa("texty.txt");
 
-	// _strcat
-	char* newa = (char*)"abc";
-	const char* a = (char*)"def";
-	char* newerer = pky::_strcat(newa, a);
-	println(newerer);
+    // TODO: replace std::cout with googletests
+    std::string test("hello world");
+    //test.append()
 
-	// construct, copy, move
-	pky::string first("hello world");
-	pky::string second = first;
-	pky::string third = "third but really fourth by line 28";
-	pky::string fourth;
-	fourth = std::move(third); // third is now invalid
+    // _strcat
+    char* newa = (char*)"abc";
+    const char* a = (char*)"def";
+    char* newerer = pky::_strcat(newa, a);
+    println(newerer);
 
-	// append, +=
-	pky::string abc = "abc";
-	abc.append("def");
-	println(abc);
-	abc += "ghi";
-	println(abc);
+    // construct, copy, move
+    pky::string first("hello world");
+    pky::string second = first;
+    pky::string third = "third but really fourth by line 28";
+    pky::string fourth;
+    fourth = std::move(third); // third is now invalid
 
-	// only changes string `second`
-	// indicating correct copy constructor and deep copies
-	second[0] = 'a';
+    // append, +=
+    pky::string abc = "abc";
+    abc.append("def");
+    println(abc);
+    abc += "ghi";
+    println(abc);
 
-	std::cout << second.length() << '\n';
-	// GetLength() gets the total number of chars, so -1 to get index value
-	std::cout << first[0] << first[first.length() - 1] << '\n';
-	println(first);
-	println(second);
-	first = "new string";
-	println(first.length());
-	println(fourth);
+    // only changes string `second`
+    // indicating correct copy constructor and deep copies
+    second[0] = 'a';
 
-	// bounds checking for .at
-	try
-	{
-		fourth.at(100);
-	}
-	catch (const std::out_of_range& e)
-	{
-		std::cout << e.what() << '\n';
-	}
+    std::cout << second.length() << '\n';
+    // GetLength() gets the total number of chars, so -1 to get index value
+    std::cout << first[0] << first[first.length() - 1] << '\n';
+    println(first);
+    println(second);
+    first = "new string";
+    println(first.length());
+    println(fourth);
 
-	/* expected output:
-	 * abcdef
-	 * abc
-	 * abc
-	 * 11
-	 * hd
-	 * hello world
-	 * aello world
-	 * 10
-	 * third but really fourth by line 28
-	 * Index at 100 is out of range
-	 */
+    // bounds checking for .at
+    try
+    {
+        fourth.at(100);
+    }
+    catch (const std::out_of_range& e)
+    {
+        std::cout << e.what() << '\n';
+    }
+
+    /* expected output:
+     * abcdef
+     * abc
+     * abc
+     * 11
+     * hd
+     * hello world
+     * aello world
+     * 10
+     * third but really fourth by line 28
+     * Index at 100 is out of range
+     */
 }
