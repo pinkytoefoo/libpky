@@ -31,7 +31,8 @@ MU_TEST(pky_helpers)
     mu_assert(strncmp(buf, "hello string", 12) == 0, "pky::_memcpy failed: buf should be 12 characters and equal to `hello string'");
 }
 
-MU_TEST(pky_string_resize) {
+MU_TEST(pky_string_resize)
+{
     pky::string res("res");
     mu_check(res.length() == 3);
     res.resize(5);
