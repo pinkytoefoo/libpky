@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <iostream>
 
 #include "pky/help.h"
 
@@ -16,14 +17,28 @@ namespace pky
 
     // takes into account null terminator
     // only needs to pass the length as the # of chars
-    void _memcpy(void* dest, const void* src, uint32_t charCount)
+    void _memcpy(void* dest, const void* src, uint32_t count)
     {
         char* cdest = (char*)dest;
         const char* csrc = (const char*)src;
 
-        for (uint32_t i = 0; i < charCount + 1; i++)
+        for (uint32_t i = 0; i < count + 1; i++)
         {
             cdest[i] = csrc[i];
+        }
+    }
+
+    void _memcpy_nt(void* dest, const void* src, uint32_t count)
+    {
+        char* cdest = (char*)dest;
+        const char* csrc = (const char*)src;
+
+        for (uint32_t i = 0; i < count + 1; i++)
+        {
+            // bug here somewhere
+            cdest[i] = csrc[i];
+            if(!csrc[i])
+                cdest[i] = '\0';
         }
     }
 

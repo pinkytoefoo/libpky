@@ -65,20 +65,22 @@ namespace pky
             m_Data = new char[1];
             m_Data[0] = '\0';
         }
-
-        m_Length = 0;
     }
 
-    char& string::at(uint32_t index)
+    // TODO: fix null terminators not appending. most likely `_memcpy_nt` bug.
+    void string::resize(size_t new_size)
     {
-        // no need to check negative indexes (index is unsigned)
-        if (index >= m_Length)
-        {
-            // might have to throw for negative numbers
-            // because compilers wraps negative numbers
-            // leading to misleading errors
-            throw std::out_of_range(std::format("Index at {} is out of range", index));
-        }
+        char* buf = new char[new_size + 1];
+        _memcpy_nt(buf, m_Data, new_size);
+        m_Data = buf;
+        m_Length = new_size;
+        m_Data[m_Length] = '\0';
+    }
+
+    char& string::at(size_t index)
+    {
+        if (index > m_Length || index < 0)
+            throw std::out_of_range(std::format("pky::string::substr - argument `index` (which is {}) > this->length() (which is {}), or is negative", index, m_Length));
 
         return m_Data[index];
     }
@@ -90,17 +92,35 @@ namespace pky
         return *this;
     }
 
-    // TODO: finish definition
-    /*string& string::insert(uint32_t index, const char* str)
+    string string::substr(size_t pos, size_t len)
     {
+        string res;
+        if(pos < 0 || pos > m_Length)
+            throw std::out_of_range(std::format("pky::string::substr - argument `pos` (which is {}) > this->length() (whic is {}), or is negative", pos, m_Length));
 
-    }*/
+        // clamp len to size of string
+        if(len > m_Length || len < 0)
+            len = m_Length;
+        
+        res.m_Length = len;
+        res.m_Data = new char[len + 1];
+        
+        _memcpy(res.m_Data, m_Data + pos, len);
+        res.m_Data[len] = '\0';
+        return res;
+    }
 
-    uint32_t string::length() const { return m_Length; }
+    // TODO: finish definition
+    // string& string::insert(uint32_t index, const char* str)
+    // {
+        
+    // }
+
+    size_t string::length() const { return m_Length; }
     char* string::c_str() const { return m_Data; }
 
     // operators
-    char& string::operator[](uint32_t index)
+    char& string::operator[](size_t index)
     {
         return m_Data[index];
     }
