@@ -58,7 +58,7 @@ namespace pky
 
     void string::clear()
     {
-        if (m_Data != nullptr || m_Data != "")
+        if (m_Data != nullptr || strcmp(m_Data, ""))
         {
             m_Length = 0;
             delete[] m_Data;
@@ -71,7 +71,9 @@ namespace pky
     void string::resize(size_t new_size)
     {
         char* buf = new char[new_size + 1];
-        _memcpy_nt(buf, m_Data, new_size);
+        _memcpy(buf, m_Data, new_size);
+        for(size_t i{m_Length}; i < new_size+1; i++)
+            buf[i] = '\0';
         m_Data = buf;
         m_Length = new_size;
         m_Data[m_Length] = '\0';
