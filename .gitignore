@@ -1,8 +1,8 @@
-.vs
-.cache
+.vs/
+.cache/
+build/
 *.sln
 *.vcxproj
 *vcxproj.*
-build
 *.json
 *.txt

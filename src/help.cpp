@@ -17,40 +17,39 @@ namespace pky
 
     // takes into account null terminator
     // only needs to pass the length as the # of chars
-    void _memcpy(void* dest, const void* src, uint32_t count)
+    void _memcpy(void* dest, const void* src, size_t count)
     {
         char* cdest = (char*)dest;
         const char* csrc = (const char*)src;
 
-        for (uint32_t i = 0; i < count + 1; i++)
+        for (size_t i = 0; i < count + 1; i++)
         {
             cdest[i] = csrc[i];
         }
     }
 
-    void _memcpy_nt(void* dest, const void* src, uint32_t count)
-    {
-        char* cdest = (char*)dest;
-        const char* csrc = (const char*)src;
+    // void _memcpy_nt(void* dest, const void* src, size_t count)
+    // {
+    //     char* cdest = (char*)dest;
+    //     const char* csrc = (const char*)src;
 
-        for (uint32_t i = 0; i < count + 1; i++)
-        {
-            // bug here somewhere
-            cdest[i] = csrc[i];
-            if(!csrc[i])
-                cdest[i] = '\0';
-        }
-    }
+    //     for (uint32_t i = 0; i < count + 1; i++)
+    //     {
+    //         // bug here somewhere
+    //         cdest[i] = csrc[i];
+    //         if(!csrc[i])
+    //             cdest[i] = '\0';
+    //     }
+    // }
 
     // TODO: fix fragility and static analysis warning
     char* _strcat(char* dest, const char* add)
     {
-        uint32_t destlength = _strlen(dest);
-        uint32_t addlength = _strlen(dest);
-        uint32_t newlength = destlength + addlength;
+        size_t destlength = _strlen(dest);
+        size_t newlength = destlength + _strlen(add);
         char* res = new char[newlength + 1];
 
-        for (uint32_t i = 0; i < newlength; i++)
+        for (size_t i = 0; i < newlength; i++)
         {
             if (i < destlength)
                 res[i] = dest[i];

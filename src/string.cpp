@@ -58,7 +58,7 @@ namespace pky
 
     void string::clear()
     {
-        if (m_Data != nullptr || strcmp(m_Data, ""))
+        if (m_Data != nullptr || strcmp(m_Data, "") != 0)
         {
             m_Length = 0;
             delete[] m_Data;
@@ -67,7 +67,6 @@ namespace pky
         }
     }
 
-    // TODO: fix null terminators not appending. most likely `_memcpy_nt` bug.
     void string::resize(size_t new_size)
     {
         char* buf = new char[new_size + 1];
@@ -81,8 +80,8 @@ namespace pky
 
     char& string::at(size_t index)
     {
-        if (index > m_Length || index < 0)
-            throw std::out_of_range(std::format("pky::string::substr - argument `index` (which is {}) > this->length() (which is {}), or is negative", index, m_Length));
+        if (index > m_Length)
+            throw std::out_of_range(std::format("pky::string::at - argument `index` (which is {}) > this->length() (which is {})", index, m_Length));
 
         return m_Data[index];
     }
@@ -97,11 +96,11 @@ namespace pky
     string string::substr(size_t pos, size_t len)
     {
         string res;
-        if(pos < 0 || pos > m_Length)
-            throw std::out_of_range(std::format("pky::string::substr - argument `pos` (which is {}) > this->length() (whic is {}), or is negative", pos, m_Length));
+        if(pos > m_Length)
+            throw std::out_of_range(std::format("pky::string::substr - argument `pos` (which is {}) > this->length() (which is {})", pos, m_Length));
 
-        // clamp len to size of string
-        if(len > m_Length || len < 0)
+        // clamp len to, at max, the full size of the string that is calling this method
+        if(len > m_Length)
             len = m_Length;
         
         res.m_Length = len;
@@ -112,11 +111,21 @@ namespace pky
         return res;
     }
 
-    // TODO: finish definition
-    // string& string::insert(uint32_t index, const char* str)
-    // {
-        
-    // }
+    // TODO: find a way to avoid 4 _memcpy calls
+    string& string::insert(size_t index, const char* str)
+    {
+        size_t newlen = m_Length + _strlen(str);
+        resize(newlen);
+
+        char* buf = new char[newlen + 1];
+        _memcpy(buf, m_Data, index);
+        _memcpy(buf + index, str, _strlen(str) + index);
+        _memcpy(buf + index + _strlen(str), m_Data + index, m_Length);
+        buf[m_Length] = '\0';
+        _memcpy(m_Data, buf, m_Length);
+
+        return *this;
+    }
 
     size_t string::length() const { return m_Length; }
     char* string::c_str() const { return m_Data; }
