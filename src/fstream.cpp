@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "pky/fstream.h"
 #include "pky/help.h"
 
@@ -7,13 +5,11 @@ namespace pky
 {
     ofstream::ofstream(const std::string& file, bool appendMode)
     {
-        std::cout << "const std::string& constructor\n\n";
         open(file.c_str(), "wb");
     }
 
     ofstream::ofstream(const char* file, bool appendMode)
     {
-        std::cout << "const char* constructor\n\n";
         open(file, "wb");
     }
 
