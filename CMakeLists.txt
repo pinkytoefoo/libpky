@@ -12,7 +12,7 @@ file(GLOB_RECURSE
 
 
 add_library(pky STATIC ${LIB_FILES})
-target_include_directories(pky PUBLIC include thirdparty/minunit thirdparty/spdlog)
+target_include_directories(pky PUBLIC include thirdparty/minunit)
 
 option(PKY_BUILD_PLAYGROUND "Build playground executable" ON)
 
