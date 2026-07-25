@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <ostream>
-#include <string>
 
 namespace pky
 {
@@ -17,7 +16,7 @@ namespace pky
     public:
         string();
         string(const char* ptr);
-        string(const string& old) noexcept;
+        string(const string& old);
         string& operator=(string&& other) noexcept;
         ~string();
 

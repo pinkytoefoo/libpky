@@ -27,7 +27,7 @@ namespace pky
         _memcpy(m_Data, ptr, m_Length);
     }
 
-    string::string(const string& other) noexcept
+    string::string(const string& other)
         : m_Length(other.m_Length)
         , m_Data(new char[other.m_Length + 1])
     {
