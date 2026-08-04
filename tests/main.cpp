@@ -6,6 +6,7 @@
 #include <minunit.h>
 
 #include "pky/pky.h"
+#include "pky/vector.h"
 
 //#define TRACK_ALLOCATIONS
 
@@ -59,6 +60,11 @@ MU_TEST_SUITE(pky_string_suite)
 
 int main()
 {
+    MU_RUN_SUITE(pky_string_suite);
+    pky::vector<int> vec({1, 2, 3});
+    vec.push_back(5);
+    for(size_t i{}; i < vec.size(); ++i)
+        std::cout << vec[i];
     std::cout << "as + b";
 }
 
