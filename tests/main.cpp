@@ -62,7 +62,7 @@ TEST_SUITE_END();
 
 TEST_SUITE_BEGIN("pky::unique_ptr");
 
-TEST_CASE("")
+TEST_CASE("nullptr")
 {
     pky::unique_ptr<double> ptr = nullptr;
     CHECK(ptr == nullptr);
@@ -73,7 +73,7 @@ TEST_CASE("")
     CHECK(ptr == nullptr);
 }
 
-TEST_CASE("pky::unique_ptr operators")
+TEST_CASE("operators")
 {
     struct Vec2i
     {
@@ -93,6 +93,62 @@ TEST_CASE("pky::unique_ptr operators")
     CHECK_UNARY(point3);
     std::ignore = point3.release();
     CHECK_FALSE(point3);
+}
+
+TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("pky::vector");
+
+TEST_CASE("instantiating")
+{
+    pky::vector<int> vec = {1,2,3};
+    CHECK(vec.size() == 3);
+    CHECK(vec.capacity() == 3);
+    for(size_t i{}; i < vec.size(); ++i)
+    {
+        CHECK(vec[i] == i+1);
+    }
+    CHECK(sizeof(vec) == (sizeof(int*) + sizeof(size_t) * 2));
+    // CHECK(sizeof(vec.))
+
+    pky::vector<int> vec2(vec);
+    CHECK(vec2.size() == 3);
+    CHECK(vec2.capacity() == 3);
+    for(size_t i{}; i < vec2.size(); ++i)
+    {
+        CHECK(vec2[i] == i+1);
+    }
+
+    pky::vector<int> vec3(std::move(vec2));
+    CHECK(vec3.size() == 3);
+    CHECK(vec3.capacity() == 3);
+    for(size_t i{}; i < vec3.size(); ++i)
+    {
+        CHECK(vec3[i] == i+1);
+    }
+
+    pky::vector<int> vec4(5, 1);
+    CHECK(vec4.size() == 5);
+    CHECK(vec4.capacity() == 5);
+    for(size_t i{}; i < vec4.size(); ++i)
+    {
+        CHECK(vec4[i] == 1);
+    }
+}
+
+TEST_CASE("member functions")
+{
+    pky::vector foo = {1,2,3,4,5};
+    CHECK(foo.size() == 5);
+    CHECK(foo.capacity() == 5);
+    foo.push_back(6);
+    CHECK(foo.size() == 6);
+    CHECK(foo.capacity() == 10);
+    for(size_t i{}; i < foo.size(); ++i)
+    {
+        std::cout << i;
+        // CHECK(foo[i] == i+1);
+    }
 }
 
 TEST_SUITE_END();
