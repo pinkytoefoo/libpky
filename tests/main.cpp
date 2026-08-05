@@ -66,21 +66,26 @@ TEST_CASE("")
 {
     pky::unique_ptr<double> ptr = nullptr;
     CHECK(ptr == nullptr);
-    ptr = new double(2);
+    ptr.reset(new double(5.5));
+    CHECK(ptr != nullptr);
+    CHECK(*ptr == 5.5);
+    ptr.release();
+    CHECK(ptr == nullptr);
 }
 
 TEST_SUITE_END();
 
 int main(int argc, char* argv[])
 {
+    doctest::Context context;
+    context.setOption("order-by", "name");
+    context.setOption("no-breaks", true);
+    context.applyCommandLine(argc, argv);
+    int res = context.run();
+
     std::unique_ptr<int> ptr2 = nullptr;
     pky::unique_ptr<int> a(new int);
     pky::unique_ptr<int> ptr1 = pky::make_unique<int>(10);
-    // doctest::Context context;
-    // context.setOption("order-by", "name");
-    // context.setOption("no-breaks", true);
-    // context.applyCommandLine(argc, argv);
-    // int res = context.run();
 
     // pky::vector<int> vec({1, 2, 3});
     // vec.push_back(5);

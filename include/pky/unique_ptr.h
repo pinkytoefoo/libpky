@@ -101,23 +101,23 @@ namespace pky
         T& operator*() const { return *ptr_; }
         T* operator->() const { return ptr_; }
     private:
-    #ifdef __cplusplus >= 202302L
+    // #ifdef __cplusplus >= 202302L
         T* ptr_{nullptr};
         [[no_unique_address]] Deleter deleter_{};
-    #else
-        // TODO: this
-        struct members : public Deleter
-        {
-            members(T* ptr)
-                : ptr{ptr}
-                , Deleter{}
-            {
-            }
-            T* ptr_{nullptr};
-        };
+    // #else
+    //     // TODO: this
+    //     struct members : public Deleter
+    //     {
+    //         members(T* ptr)
+    //             : ptr{ptr}
+    //             , Deleter{}
+    //         {
+    //         }
+    //         T* ptr_{nullptr};
+    //     };
 
-        members m_;
-    #endif
+    //     members m_;
+    // #endif
     };
 
     template<typename T>
