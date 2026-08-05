@@ -31,7 +31,7 @@ void println(Args && ...args)
     std::cout << '\n';
 }
 
-TEST_SUITE_BEGIN("pky_string");
+TEST_SUITE_BEGIN("pky::string");
 TEST_CASE("pky_helpers")
 {
     char* buf = new char[13];
@@ -69,8 +69,30 @@ TEST_CASE("")
     ptr.reset(new double(5.5));
     CHECK(ptr != nullptr);
     CHECK(*ptr == 5.5);
-    ptr.release();
+    (void)ptr.release();
     CHECK(ptr == nullptr);
+}
+
+TEST_CASE("pky::unique_ptr operators")
+{
+    struct Vec2i
+    {
+        int x, y;
+        void Work() { }
+    };
+
+    pky::unique_ptr<Vec2i> point1 = pky::make_unique<Vec2i>(4, 2);
+    pky::unique_ptr<Vec2i> point2 = pky::make_unique<Vec2i>(4, 2);
+    pky::unique_ptr<Vec2i> point3 = pky::make_unique<Vec2i>(1, 8);
+
+    point1->Work();
+    (*point1).Work();
+    CHECK(point1->x == 4);
+    CHECK(point1->y == 2);
+    CHECK(point1 != point2);
+    CHECK_UNARY(point3);
+    std::ignore = point3.release();
+    CHECK_FALSE(point3);
 }
 
 TEST_SUITE_END();
