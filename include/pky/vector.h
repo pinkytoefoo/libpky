@@ -1,6 +1,10 @@
 #pragma once
 
+#include <iostream>
 #include <initializer_list>
+#include <pky/algorithm.h>
+#include <cstring>
+
 namespace pky
 {
     template<typename T>
@@ -18,7 +22,7 @@ namespace pky
             capacity_ = elements.size();
             size_ = elements.size();
             elements_ = capacity_ != 0 ? new T[capacity_] : nullptr;
-            std::copy(elements.begin(), elements.end(), elements_);
+            pky::copy(elements.begin(), elements.end(), elements_);
         }
 
         vector(const vector& other)
@@ -26,7 +30,20 @@ namespace pky
             , size_{other.size_}
             , elements_{other.capacity_ != 0 ? elements_ = new T[other.capacity_] : elements_ = nullptr}
         {
-            std::copy(other.elements_.begin(), other.elements_.end(), elements_);
+            std::cout << "copy constructor!\n";
+            std::memcpy(elements_, other.elements_, capacity_);
+        }
+
+        vector& operator=(const vector& other)
+        {
+            if(this != &other)
+            {
+                capacity_ = other.capacity_;
+                size_ = other.size_;
+                std::memcpy(elements_, other.elements_, capacity_);
+            }
+
+            return *this;
         }
 
         ~vector()
@@ -37,34 +54,46 @@ namespace pky
 
         void push_back(const T& element)
         {
-            if(size_ >= capacity_)
-                grow_();
+            should_grow_();
         
             elements_[size_++] = element;
         }
 
         void push_back(T&& element)
         {
-            if(size_ >= capacity_)
-                grow_();
+            should_grow_();
         
             elements_[size_++] = std::move(element);
+        }
+        
+        template<typename... Args>
+        void emplace_back(Args&&... args)
+        {
+            should_grow_();
+
+            elements_[size++] = vector(args...);
         }
 
         size_t size() const { return size_; }
         size_t capacity() const { return capacity_; }
 
         T& operator[](size_t idx) { return elements_[idx]; }
+        const T& operator[](size_t idx) const { return elements_[idx]; }
     private:
-        void grow_()
+        void should_grow_()
         {
+            if(size_ < capacity_)
+                return;
+            
             capacity_ = capacity_ != 0 ? capacity_ * 2 : 1;
-            T* temp = new T[capacity_];
+            T* temp = ::operator new(capacity_ * sizeof(T));
             for(size_t i{}; i < size_; ++i)
               temp[i] = std::move(elements_[i]);
+            
             delete[] elements_;
             elements_ = temp;
         }
+
         size_t capacity_{0};
         size_t size_{0};
         T* elements_{nullptr};

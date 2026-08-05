@@ -92,6 +92,18 @@ int main(int argc, char* argv[])
     // for(size_t i{}; i < vec.size(); ++i)
     // std::cout << vec[i];
     // std::cout << "as + b";
+    // MU_RUN_SUITE(pky_string_suite);
+    // pky::vector<int> vec({1, 2, 3});
+    // vec.push_back(5);
+    // for(size_t i{}; i < vec.size(); ++i)
+    //     std::cout << vec[i];
+    // std::cout << '\n';
+    //
+    // std::cout << vec.size() << vec.capacity() << '\n';
+    // pky::vector vec2{vec};
+    //
+    // for(size_t i{}; i < vec2.size(); ++i)
+    //     std::cout << vec2[i];
 }
 
 // int main()
