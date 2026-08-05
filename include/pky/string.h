@@ -25,7 +25,7 @@ namespace pky
         char& at(size_t index);
         string& append(const char* str);
         string& insert(size_t index, const char* str);
-        string substr(size_t pos, size_t len = size_t{-1uz}); // messing with brace initilization and c++23 integer literals (uz suffix)
+        string substr(size_t pos, size_t len = size_t{0uz}); // messing with brace initilization and c++23 integer literals (uz suffix)
 
         size_t length() const;
         char* c_str() const;

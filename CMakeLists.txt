@@ -13,12 +13,13 @@ file(GLOB_RECURSE
 
 add_library(pky STATIC ${LIB_FILES})
 target_include_directories(pky PUBLIC include thirdparty/minunit)
+target_include_directories(pky PUBLIC include thirdparty/doctest)
 
 option(PKY_BUILD_PLAYGROUND "Build playground executable" ON)
 
 if (PKY_BUILD_PLAYGROUND)
-    add_executable(pky_playground
+    add_executable(pky_test
         tests/main.cpp
     )
-    target_link_libraries(pky_playground PRIVATE pky)
+    target_link_libraries(pky_test PRIVATE pky)
 endif()

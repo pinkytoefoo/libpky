@@ -22,7 +22,7 @@ namespace pky
         char* cdest = (char*)dest;
         const char* csrc = (const char*)src;
 
-        for (size_t i = 0; i < count + 1; i++)
+        for (size_t i = 0; i < count + 1; ++i)
         {
             cdest[i] = csrc[i];
         }

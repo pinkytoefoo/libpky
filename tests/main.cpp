@@ -2,11 +2,17 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <memory>
+#include <cstring>
+// #include <unique_ptr.h>
 
-#include <minunit.h>
+// #include <minunit.h>
+#define DOCTEST_CONFIG_IMPLEMENT
+#include <doctest.h>
 
 #include "pky/pky.h"
 #include "pky/vector.h"
+#include "pky/unique_ptr.h"
 
 //#define TRACK_ALLOCATIONS
 
@@ -25,19 +31,20 @@ void println(Args && ...args)
     std::cout << '\n';
 }
 
-MU_TEST(pky_helpers)
+TEST_SUITE_BEGIN("pky_string");
+TEST_CASE("pky_helpers")
 {
     char* buf = new char[13];
     pky::_memcpy(buf, "hello string", 12);
-    mu_assert(strncmp(buf, "hello string", 12) == 0, "pky::_memcpy failed: buf should be 12 characters and equal to `hello string'");
+    CHECK_MESSAGE(std::strncmp(buf, "hello string", 12) == 0, "pky::_memcpy failed: buf should be 12 characters and equal to `hello string'");
 }
 
-MU_TEST(pky_string_resize)
+TEST_CASE("pky_string_resize")
 {
     pky::string res("res");
-    mu_check(res.length() == 3);
+    CHECK(res.length() == 3);
     res.resize(5);
-    mu_check(res.length() == 5);
+    CHECK(res.length() == 5);
 
     char* check = new char[res.length() + 1];
     for(size_t i = 0; i < res.length(); ++i)
@@ -48,24 +55,38 @@ MU_TEST(pky_string_resize)
             check[i] = res[i];
     }
     check[5] = '\0';
-
-    mu_check(strncmp(check, "res00", 5) == 0);
+    CHECK(std::strncmp(check, "res00", 5) == 0);
 }
 
-MU_TEST_SUITE(pky_string_suite)
+TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("pky::unique_ptr");
+
+TEST_CASE("")
 {
-    MU_RUN_TEST(pky_string_resize);
-    MU_RUN_TEST(pky_helpers);
+    pky::unique_ptr<double> ptr = nullptr;
+    CHECK(ptr == nullptr);
+    ptr = new double(2);
 }
 
-int main()
+TEST_SUITE_END();
+
+int main(int argc, char* argv[])
 {
-    MU_RUN_SUITE(pky_string_suite);
-    pky::vector<int> vec({1, 2, 3});
-    vec.push_back(5);
-    for(size_t i{}; i < vec.size(); ++i)
-        std::cout << vec[i];
-    std::cout << "as + b";
+    std::unique_ptr<int> ptr2 = nullptr;
+    pky::unique_ptr<int> a(new int);
+    pky::unique_ptr<int> ptr1 = pky::make_unique<int>(10);
+    // doctest::Context context;
+    // context.setOption("order-by", "name");
+    // context.setOption("no-breaks", true);
+    // context.applyCommandLine(argc, argv);
+    // int res = context.run();
+
+    // pky::vector<int> vec({1, 2, 3});
+    // vec.push_back(5);
+    // for(size_t i{}; i < vec.size(); ++i)
+    // std::cout << vec[i];
+    // std::cout << "as + b";
 }
 
 // int main()
