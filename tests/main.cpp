@@ -134,6 +134,8 @@ TEST_CASE("instantiating")
     {
         CHECK(vec4[i] == 1);
     }
+
+    pky::vector<int> vec5(10);
 }
 
 TEST_CASE("member functions")
@@ -149,6 +151,22 @@ TEST_CASE("member functions")
         std::cout << i;
         // CHECK(foo[i] == i+1);
     }
+
+    struct Vec2i
+    {
+        int x, y;
+    };
+
+    pky::vector<Vec2i> points{Vec2i(4, 2), Vec2i(44, 32)};
+    points.emplace_back(11, 89);
+    CHECK(points[0].x == 4);
+    CHECK(points[1].x == 44);
+    CHECK(points[2].x == 11);
+    CHECK(points.size() == 3);
+    CHECK(points.capacity() == 4);
+    points.pop_back();
+    CHECK(points.size() == 2);
+    CHECK(points.capacity() == 4);
 }
 
 TEST_SUITE_END();
@@ -160,7 +178,8 @@ int main(int argc, char* argv[])
     context.setOption("no-breaks", true);
     context.applyCommandLine(argc, argv);
     int res = context.run();
-
+    
+    std::vector<int> vec(0);
     std::unique_ptr<int> ptr2 = nullptr;
     pky::unique_ptr<int> a(new int);
     pky::unique_ptr<int> ptr1 = pky::make_unique<int>(10);
