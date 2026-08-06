@@ -4,6 +4,7 @@
 #include <fstream>
 #include <memory>
 #include <cstring>
+#include <stdexcept>
 // #include <unique_ptr.h>
 
 // #include <minunit.h>
@@ -197,139 +198,66 @@ TEST_CASE("reserving")
     vec.reserve(10);
     CHECK(vec.size() == 7);
     CHECK(vec.capacity() == 10);
-    CHECK(vec[9] == 0);
+    CHECK_THROWS_AS(vec.at(9), std::out_of_range);
     for(size_t i{}; i < vec.size(); ++i)
     {
         CHECK(vec[i] == i+1);
     }
 }
 
+TEST_CASE("iterator")
+{
+    pky::vector<int> vec = {1,2,3,4,5,6,7,8,9,10};
+    
+    for(int n : vec)
+    {
+        std::cout << n << '\n';
+    }
+}
+
+TEST_CASE("swap")
+{
+    pky::vector<int> vec1 = {1,2};
+    pky::vector<int> vec2 = {2,1};
+    vec1.swap(vec2);
+    CHECK(vec1.capacity() == 2);
+    CHECK(vec1.size() == 2);
+    CHECK(vec1[0] == 2);
+    CHECK(vec1[1] == 1);
+
+    CHECK(vec2.capacity() == 2);
+    CHECK(vec2.size() == 2);
+    CHECK(vec2[0] == 1);
+    CHECK(vec2[1] == 2);
+}
+
+// TEST_CASE("shrink_to_fit")
+// {
+//     pky::vector<int> vec = {1,2,3};
+//     vec.reserve(11);
+//     CHECK(vec.capacity() == 11);
+//     CHECK(vec.capacity() == 3);
+// }
+
+
 TEST_SUITE_END();
 
 int main(int argc, char* argv[])
 {
-    std::vector<int> v;
+    std::vector<int> v(10);
+    pky::vector<int> a(10);
+    try
+    {
+        std::ignore = a.at(1);
+        std::cout << a.at(1);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     doctest::Context context;
     context.setOption("order-by", "name");
     context.setOption("no-breaks", true);
     context.applyCommandLine(argc, argv);
     int res = context.run();
-    
-    pky::vector<int> vec{1,2,3};
-    for(size_t i{}; i < vec.size(); ++i)
-    {
-        std::cout << vec[i] << " ";
-    }
-
-    std::unique_ptr<int> ptr2 = nullptr;
-    pky::unique_ptr<int> a(new int);
-    pky::unique_ptr<int> ptr1 = pky::make_unique<int>(10);
-
-    // pky::vector<int> vec({1, 2, 3});
-    // vec.push_back(5);
-    // for(size_t i{}; i < vec.size(); ++i)
-    // std::cout << vec[i];
-    // std::cout << "as + b";
-    // MU_RUN_SUITE(pky_string_suite);
-    // pky::vector<int> vec({1, 2, 3});
-    // vec.push_back(5);
-    // for(size_t i{}; i < vec.size(); ++i)
-    //     std::cout << vec[i];
-    // std::cout << '\n';
-    //
-    // std::cout << vec.size() << vec.capacity() << '\n';
-    // pky::vector vec2{vec};
-    //
-    // for(size_t i{}; i < vec2.size(); ++i)
-    //     std::cout << vec2[i];
 }
-
-// int main()
-// {
-//     MU_RUN_SUITE(pky_string_suite);
-
-//     // println("sf substr: ", sf.substr(-1, -1));
-//     pky::ofstream f("texty.txt");
-//     //f << "hello\n";
-//     // std::ofstream fa("texty.txt");
-// 	// TODO: replace std::cout with googletests
-// 	std::string test("hello world");
-//     println("test size: ", test.size());
-//     test.insert(3, "a");
-//     println("test: ", test);
-//     println("test size: ", test.size());
-//     // println("test substr: ", test.substr(-1, -1));
-// 	//test.append()
-
-//     // _strcat
-//     char newa[7] = "abc";
-//     const char* a = (char*)"def";
-//     char* newerer = pky::_strcat(newa, a);
-//     println(newerer);
-
-//     // construct, copy, move
-//     pky::string res("res");
-//     res.insert(1, "hi"); // rhies
-//     println("res: ", res);
-//     // pky::string first("hello world");
-//     // first.resize(5);
-//     // for(size_t i = 0; i < first.length(); ++i)
-//     // {
-//     //     if(first[i] == '\0')
-//     //         std::cout << "0";
-//     //     else
-//     //         std::cout << first[i];
-//     // }
-//     // println();
-//     // println("length: ", first.length(), ", buffer: ", first);
-//     // println("first substr: ", first.substr(0, 3));
-//     // pky::string second = first;
-//     pky::string third = "third but really fourth by line 28";
-//     pky::string fourth;
-//     fourth = std::move(third); // third is now invalid
-
-//     // append, +=
-//     pky::string abc = "abc";
-//     abc.append("def");
-//     println(abc);
-//     abc += "ghi";
-//     println(abc);
-
-//     // only changes string `second`
-//     // indicating correct copy constructor and deep copies
-//     // second[0] = 'a';
-
-//     // std::cout << second.length() << '\n';
-//     // length() gets the total number of chars, so -1 to get index value
-//     // std::cout << first[0] << first[first.length() - 1] << '\n';
-//     // println(first);
-//     // println(second);
-//     // first = "new string";
-//     // println(first.length());
-//     // println(fourth);
-
-//     // bounds checking for .at
-//     try
-//     {
-//         fourth.at(100);
-//     }
-//     catch (const std::out_of_range& e)
-//     {
-//         std::cout << e.what() << '\n';
-//     }
-
-//     /* expected output:
-//      * abcdef
-//      * abc
-//      * abc
-//      * 11
-//      * hd
-//      * hello world
-//      * aello world
-//      * 10
-//      * third but really fourth by line 28
-//      * Index at 100 is out of range
-//      */
-
-//      return 0;
-// }
