@@ -10,20 +10,20 @@ namespace pky
     template<typename T>
     struct default_allocator
     {
-        T* alloc(size_t count)
+        [[nodiscard]] T* alloc(size_t count)
         {
             return static_cast<T*>(::operator new(count * sizeof(T)));
         }
-
-        void construct_at(T* ptr, size_t pos, const T& obj)
-        {
-            ::new (static_cast<void*>(ptr + pos)) T(obj);
-        }
-
+        
         template<typename... Args>
-        void construct_at(T* ptr, size_t pos, Args&&... args)
+        void construct_at(T* ptr, Args&&... args)
         {
-            ::new (static_cast<void*>(ptr + pos)) T(std::forward<Args&&>(args)...);
+            ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
+        }
+        
+        void destroy_at(T* ptr)
+        {
+            ptr->~T();
         }
 
         void dealloc(T* ptr)
@@ -51,7 +51,7 @@ namespace pky
         {
             for(size_t i{}; i < capacity_; ++i)
             {
-                ::new (static_cast<void*>(elements_ + i)) T(val);
+                allocator.construct_at(elements_ + i, val);
             }
         }
 
@@ -59,73 +59,110 @@ namespace pky
         {
             capacity_ = elements.size();
             size_ = elements.size();
-            elements_ = capacity_ != 0 ? static_cast<T*>(::operator new(capacity_ * sizeof(T))) : nullptr;
-            pky::copy(elements.begin(), elements.end(), elements_);
+            elements_ = capacity_ != 0 ? allocator.alloc(capacity_) : nullptr;
+            size_t i{};
+            for(const auto& e : elements)
+            {
+                allocator.construct_at(elements_ + i++, e);
+            }
         }
 
         vector(const vector& other)
-            : capacity_{other.capacity_}
-            , size_{other.size_}
-            , elements_{other.capacity_ != 0 ? static_cast<T*>(::operator new(other.capacity_ * sizeof(T))) : nullptr}
         {
-            std::cout << "copy constructor!\n";
-            T* other_temp = other.elements_;
-            T* elem_temp = elements_;
-
-            for(size_t i{}; i < size_; ++i)
+            capacity_ = other.capacity_;
+            size_ = other.size_;
+            elements_ = allocator.alloc(other.capacity_);
+            
+            for(size_t i{}; i < other.size_; ++i)
             {
-                allocator.construct_at(elements_, i, other.elements_[i]);
+                allocator.construct_at(elements_ + i, other.elements_[i]);
             }
         }
 
-        vector& operator=(const vector& other)
+        vector& operator=(const vector& rhs)
         {
-            if(this != &other)
-            {
-                capacity_ = other.capacity_;
-                size_ = other.size_;
-                std::memcpy(elements_, other.elements_, capacity_);
-            }
+            if(this == &rhs)
+                return *this;
+
+            T* temp = rhs.capacity_ != 0 ? allocator.alloc(rhs.capacity_) : nullptr;
+            for(size_t i{}; i < rhs.size; ++i)
+                allocator.construct_at(temp + i, rhs.elements_[i]);
+
+            for(size_t i{}; i < size_; ++i)
+                allocator.destroy_at(elements_ + i);
+
+            allocator.dealloc(elements_);
+            elements_ = temp;
+            capacity_ = rhs.capacity_;
+            size_ = rhs.size_;
+            return *this;
+        }
+
+        vector(vector&& other)
+        {
+            clear();
+            allocator.dealloc(elements_);
+            elements_ = nullptr;
+
+            swap(*this, other);
+        }
+
+        vector& operator=(vector&& rhs)
+        {
+            if(this == &rhs)
+                return *this;
+            
+            clear();
+            allocator.dealloc(elements_);
+            capacity_ = 0;
+            size_ = 0;
+            elements_ = nullptr;
+
+            swap(*this, rhs);
 
             return *this;
         }
 
-        ~vector()
+        // void swap(vector& other)
+        // {
+        //     ::swap(*this, other);
+        // }
+
+        friend void swap(vector& first, vector& second) noexcept
+        {
+            using std::swap;
+            swap(first.capacity_, second.capacity_);
+            swap(first.size_, second.size_);
+            swap(first.elements_, second.elements_);
+        }
+
+        ~vector() noexcept
         {
             clear();
             allocator.dealloc(elements_);
         }
 
-
-        void push_back(const T& element)
-        {
-            should_grow_();
-        
-            allocator.construct_at(elements_, size_, element);
-            ++size_;
-        }
-
         void push_back(T&& element)
         {
             should_grow_();
-            
-            allocator.construct_at(elements_, size_, std::move(element));
-            ++size_;
+
+            allocator.construct_at(elements_ + size_++, std::forward<T>(element));
         }
-        
+
         template<typename... Args>
         void emplace_back(Args&&... args)
         {
             should_grow_();
             
-            allocator.construct_at(elements_, size_, std::forward<Args&&>(args)...);
-            ++size_;
+            allocator.construct_at(elements_ + size_++, std::forward<Args>(args)...);
         }
 
         void reserve(size_t new_cap)
         {
-            capacity_ = new_cap;
-            elements_ = allocator.alloc(capacity_);
+            if(new_cap <= capacity_)
+                return;
+
+            reallocate_(new_cap);
         }
         
         // TODO: implement
@@ -144,8 +181,11 @@ namespace pky
 
         void pop_back()
         {
-            // is decrementing correct here?
-            elements_[size_--].~T();
+            if(size_ == 0)
+                return;
+
+            --size_;
+            allocator.destroy_at(elements_ + size_);
         }
 
         size_t size() const { return size_; }
@@ -153,19 +193,25 @@ namespace pky
 
         T& operator[](size_t idx) { return elements_[idx]; }
         const T& operator[](size_t idx) const { return elements_[idx]; }
+    
     private:
         void should_grow_()
         {
-            if(size_ < capacity_)
-                return;
-            
-            capacity_ = capacity_ != 0 ? capacity_ * 2 : 1;
-            T* temp = static_cast<T*>(::operator new(capacity_ * sizeof(T)));
+            if(size_ >= capacity_)
+                reallocate_(capacity_ != 0 ? capacity_ * 2 : 1);
+        }
+        
+        void reallocate_(size_t new_size)
+        {
+            T* temp = allocator.alloc(new_size);
             for(size_t i{}; i < size_; ++i)
-              ::new (static_cast<void*>(temp + i)) T(std::move(elements_[i]));
-            
-            ::operator delete(elements_);
+            {
+                allocator.construct_at(temp + i, std::move(elements_[i]));
+                allocator.destroy_at(elements_ + i);
+            }
+            allocator.dealloc(elements_);
             elements_ = temp;
+            capacity_ = new_size;
         }
 
         size_t capacity_{0};

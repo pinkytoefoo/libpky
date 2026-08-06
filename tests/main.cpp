@@ -138,6 +138,25 @@ TEST_CASE("instantiating")
     pky::vector<int> vec5(10);
 }
 
+TEST_CASE("moving")
+{
+    pky::vector<int> bar{55, 56, 57};
+    for(size_t i{}; i < bar.size(); ++i)
+    {
+        CHECK(bar[i] == i + 55);
+    }
+
+    pky::vector<int> foo(3);
+    foo = std::move(bar);
+    CHECK(bar.size() == 0);
+    CHECK(bar.capacity() == 0);
+    // CHECK_FALSE(bar);
+
+    CHECK(foo.size() == 3);
+    CHECK(foo.capacity() == 3);
+    // CHECK_UNARY(foo);
+}
+
 TEST_CASE("member functions")
 {
     pky::vector foo = {1,2,3,4,5};
@@ -169,6 +188,20 @@ TEST_CASE("member functions")
     CHECK(points.capacity() == 4);
 }
 
+TEST_CASE("reserving")
+{
+    pky::vector vec = {1,2,3};
+    vec.reserve(5);
+    CHECK(vec.size() == 3);
+    CHECK(vec.capacity() == 5);
+    CHECK(vec[3] == 0);
+    for(size_t i{}; i < vec.size(); ++i)
+    {
+        std::cout << vec[i] << " ";
+    }
+    std::cout << '\n';
+}
+
 TEST_SUITE_END();
 
 int main(int argc, char* argv[])
@@ -178,8 +211,13 @@ int main(int argc, char* argv[])
     context.setOption("no-breaks", true);
     context.applyCommandLine(argc, argv);
     int res = context.run();
-    
-    std::vector<int> vec(0);
+
+    pky::vector<int> vec{1,2,3};
+    for(size_t i{}; i < vec.size(); ++i)
+    {
+        std::cout << vec[i] << " ";
+    }
+
     std::unique_ptr<int> ptr2 = nullptr;
     pky::unique_ptr<int> a(new int);
     pky::unique_ptr<int> ptr1 = pky::make_unique<int>(10);
