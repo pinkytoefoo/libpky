@@ -190,28 +190,31 @@ TEST_CASE("member functions")
 
 TEST_CASE("reserving")
 {
-    pky::vector vec = {1,2,3};
+    pky::vector vec = {1,2,3,4,5,6,7};
     vec.reserve(5);
-    CHECK(vec.size() == 3);
-    CHECK(vec.capacity() == 5);
-    CHECK(vec[3] == 0);
+    CHECK(vec.size() == 7);
+    CHECK(vec.capacity() == 7);
+    vec.reserve(10);
+    CHECK(vec.size() == 7);
+    CHECK(vec.capacity() == 10);
+    CHECK(vec[9] == 0);
     for(size_t i{}; i < vec.size(); ++i)
     {
-        std::cout << vec[i] << " ";
+        CHECK(vec[i] == i+1);
     }
-    std::cout << '\n';
 }
 
 TEST_SUITE_END();
 
 int main(int argc, char* argv[])
 {
+    std::vector<int> v;
     doctest::Context context;
     context.setOption("order-by", "name");
     context.setOption("no-breaks", true);
     context.applyCommandLine(argc, argv);
     int res = context.run();
-
+    
     pky::vector<int> vec{1,2,3};
     for(size_t i{}; i < vec.size(); ++i)
     {
