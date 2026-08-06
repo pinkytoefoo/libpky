@@ -11,23 +11,26 @@ namespace pky
     template<typename T>
     struct default_allocator
     {
-        [[nodiscard]] T* alloc(size_t count)
+        using value_type = T;
+        using pointer = T*;
+
+        [[nodiscard]] pointer allocate(size_t count)
         {
-            return static_cast<T*>(::operator new(count * sizeof(T)));
+            return static_cast<pointer>(::operator new(count * sizeof(T)));
         }
         
         template<typename... Args>
-        void construct_at(T* ptr, Args&&... args)
+        void construct_at(pointer, Args&&... args)
         {
             ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
         }
         
-        void destroy_at(T* ptr)
+        void destroy_at(pointer ptr)
         {
             ptr->~T();
         }
 
-        void dealloc(T* ptr)
+        void deallocate(pointer ptr)
         {
             ::operator delete(ptr);
         }
@@ -119,6 +122,7 @@ namespace pky
 
         vector(const vector& other)
         {
+            std::cout << "copy ctor\n";
             capacity_ = other.capacity_;
             size_ = other.size_;
             elements_ = capacity_ != 0 ? allocator_.alloc(other.capacity_) : nullptr;
@@ -129,32 +133,49 @@ namespace pky
 
         vector& operator=(const vector& rhs)
         {
+            std::cout << "copy assign\n";
             if(this == &rhs)
                 return *this;
 
-            vector temp(rhs);
-            swap(temp);
+            clear();
+            allocator_.dealloc(elements_);
+            std::copy(rhs.elements_, rhs.elements_ + rhs.size_, elements_);
+            capacity_ = rhs.capacity_;
+            size_ = rhs.size_;
+            
             return *this;
         }
 
-        vector(vector&& other)
+        vector(vector&& other) noexcept
             : capacity_{other.capacity_}
             , size_{other.size_}
             , elements_{other.elements_}
             , allocator_{std::move(other.allocator_)}
         {
+            std::cout << "move ctor\n";
+
             other.capacity_ = 0;
             other.size_ = 0;
             other.elements_ = nullptr;
         }
 
-        vector& operator=(vector&& rhs)
+        vector& operator=(vector&& rhs) noexcept
         {
+            std::cout << "move assign noexcept\n";
+
             if(this == &rhs)
                 return *this;
             
-            vector temp(std::move(rhs));
-            swap(temp);
+            clear();
+            allocator_.dealloc(elements_);
+            capacity_ = rhs.capacity_;
+            size_ = rhs.size_;
+            elements_ = rhs.elements_;
+            allocator_ = rhs.allocator_;
+
+            rhs.capacity_ = 0;
+            rhs.size_ = 0;
+            rhs.elements_ = nullptr;
 
             return *this;
         }
@@ -191,9 +212,10 @@ namespace pky
         }
 
         template<typename... Args>
-        void emplace_back(Args&&... args)
+        T& emplace_back(Args&&... args)
         {
             append_back_(std::forward<Args>(args)...);
+            return back();
         }
 
         void reserve(size_t new_cap)

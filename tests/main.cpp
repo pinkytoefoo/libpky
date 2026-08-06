@@ -149,6 +149,7 @@ TEST_CASE("moving")
 
     pky::vector<int> foo(3);
     foo = std::move(bar);
+    // std::cout << bar[0];
     CHECK(bar.size() == 0);
     CHECK(bar.capacity() == 0);
     // CHECK_FALSE(bar);
@@ -168,8 +169,7 @@ TEST_CASE("member functions")
     CHECK(foo.capacity() == 10);
     for(size_t i{}; i < foo.size(); ++i)
     {
-        std::cout << i;
-        // CHECK(foo[i] == i+1);
+        CHECK(foo[i] == i+1);
     }
 
     struct Vec2i
@@ -177,7 +177,7 @@ TEST_CASE("member functions")
         int x, y;
     };
 
-    pky::vector<Vec2i> points{Vec2i(4, 2), Vec2i(44, 32)};
+    pky::vector<Vec2i> points{Vec2i(4, 2), Vec2i{44, 32}};
     points.emplace_back(11, 89);
     CHECK(points[0].x == 4);
     CHECK(points[1].x == 44);
@@ -211,7 +211,7 @@ TEST_CASE("iterator")
     
     for(int n : vec)
     {
-        std::cout << n << '\n';
+        // std::cout << n << '\n';
     }
 }
 
@@ -244,17 +244,23 @@ TEST_SUITE_END();
 
 int main(int argc, char* argv[])
 {
+    pky::vector<int> vec1 = {1,2};
+    pky::vector<int> vec2 = {2,1};
+    vec1.swap(vec2);
+    pky::vector<int> vec3(std::move(vec1));
+    pky::vector<int> vec4(3);
+    vec4 = std::move(vec3);
     std::vector<int> v(10);
     pky::vector<int> a(10);
-    try
-    {
-        std::ignore = a.at(1);
-        std::cout << a.at(1);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
+    // try
+    // {
+    //     std::ignore = a.at(1);
+    //     std::cout << a.at(1);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //     std::cerr << e.what() << '\n';
+    // }
     doctest::Context context;
     context.setOption("order-by", "name");
     context.setOption("no-breaks", true);
