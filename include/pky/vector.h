@@ -95,9 +95,6 @@ namespace pky
             , size_{cap}
             , elements_(cap != 0 ? allocator_.allocate(cap) : nullptr)
         {
-            // default construct elements, same as stl vector
-            // for(size_t i{}; i < cap; ++i)
-            //     allocator_.construct_at(elements_ + i);
             construct_all_();
         }
 
@@ -190,14 +187,10 @@ namespace pky
             destroy_and_deallocate_();
         }
 
-        void push_back(const T& element)
+        template<typename U>
+        void push_back(U&& element)
         {
-            append_back_(element);
-        }
-
-        void push_back(T&& element)
-        {
-            append_back_(std::move(element));
+            append_back_(std::forward<U>(element));
         }
 
         template<typename... Args>
@@ -332,14 +325,38 @@ namespace pky
         template<typename... Args>
         void construct_all_(Args&&... args)
         {
-            for(size_t i{}; i < size_; ++i)
-                allocator_.construct_at(elements_ + i, std::forward<Args>(args)...);
+            size_t i{};
+            try
+            {
+                for(; i < size_; ++i)
+                    allocator_.construct_at(elements_ + i, std::forward<Args>(args)...);
+            }
+            catch (...)
+            {
+                for(size_t j{}; j < i; ++j)
+                    allocator_.destroy_at(elements_ + j);
+                
+                allocator_.deallocate(elements_);
+                throw;
+            }
         }
 
         void construct_from_(const vector& other)
         {
-            for(size_t i{}; i < size_; ++i)
-                allocator_.construct_at(elements_ + i, other[i]); // possible size indexing issue, idk
+            size_t i{};
+            try
+            {
+                for(; i < size_; ++i)
+                    allocator_.construct_at(elements_ + i, other[i]); // possible size indexing issue, idk
+            }
+            catch (...)
+            {
+                for(size_t j{}; j < i; ++j)
+                    allocator_.destroy_at(elements_ + j);
+                
+                allocator_.deallocate(elements_);
+                throw;
+            }
         }
 
         // TODO: find a better name
