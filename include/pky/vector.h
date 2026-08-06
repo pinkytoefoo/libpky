@@ -5,6 +5,7 @@
 #include <pky/algorithm.h>
 #include <cstring>
 #include <stdexcept>
+#include <format>
 
 namespace pky
 {
@@ -20,7 +21,7 @@ namespace pky
         }
         
         template<typename... Args>
-        void construct_at(pointer, Args&&... args)
+        void construct_at(pointer ptr, Args&&... args)
         {
             ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
         }
@@ -92,43 +93,40 @@ namespace pky
         vector(size_t cap)
             : capacity_{cap}
             , size_{cap}
-            , elements_(cap != 0 ? allocator_.alloc(cap) : nullptr)
+            , elements_(cap != 0 ? allocator_.allocate(cap) : nullptr)
         {
             // default construct elements, same as stl vector
-            for(size_t i{}; i < cap; ++i)
-                allocator_.construct_at(elements_ + i, T());
+            // for(size_t i{}; i < cap; ++i)
+            //     allocator_.construct_at(elements_ + i);
+            construct_all_();
         }
 
         vector(size_t cap, const T& val)
             : capacity_{cap}
             , size_{cap}
-            , elements_{cap != 0 ? allocator_.alloc(cap) : nullptr}
+            , elements_{cap != 0 ? allocator_.allocate(cap) : nullptr}
         {
-            for(size_t i{}; i < capacity_; ++i)
-            {
-                allocator_.construct_at(elements_ + i, val);
-            }
+            construct_all_(val);
         }
 
         vector(std::initializer_list<T> elements)
+            : capacity_{elements.size()}
+            , size_{elements.size()}
+            , elements_{capacity_ != 0 ? allocator_.allocate(capacity_) : nullptr}
         {
-            capacity_ = elements.size();
-            size_ = elements.size();
-            elements_ = capacity_ != 0 ? allocator_.alloc(capacity_) : nullptr;
             size_t i{};
             for(const auto& e : elements)
                 allocator_.construct_at(elements_ + i++, e);
         }
 
         vector(const vector& other)
+            : capacity_{other.capacity_}
+            , size_{other.size_}
+            , elements_{capacity_ != 0 ? allocator_.allocate(other.capacity_) : nullptr}
         {
             std::cout << "copy ctor\n";
-            capacity_ = other.capacity_;
-            size_ = other.size_;
-            elements_ = capacity_ != 0 ? allocator_.alloc(other.capacity_) : nullptr;
             
-            for(size_t i{}; i < other.size_; ++i)
-                allocator_.construct_at(elements_ + i, other.elements_[i]);
+            construct_from_(other);
         }
 
         vector& operator=(const vector& rhs)
@@ -137,11 +135,8 @@ namespace pky
             if(this == &rhs)
                 return *this;
 
-            clear();
-            allocator_.dealloc(elements_);
-            std::copy(rhs.elements_, rhs.elements_ + rhs.size_, elements_);
-            capacity_ = rhs.capacity_;
-            size_ = rhs.size_;
+            vector temp(rhs);
+            swap(temp);
             
             return *this;
         }
@@ -154,9 +149,7 @@ namespace pky
         {
             std::cout << "move ctor\n";
 
-            other.capacity_ = 0;
-            other.size_ = 0;
-            other.elements_ = nullptr;
+            other.default_();
         }
 
         vector& operator=(vector&& rhs) noexcept
@@ -166,39 +159,35 @@ namespace pky
             if(this == &rhs)
                 return *this;
             
-            clear();
-            allocator_.dealloc(elements_);
+            destroy_and_deallocate_();
             capacity_ = rhs.capacity_;
             size_ = rhs.size_;
             elements_ = rhs.elements_;
-            allocator_ = rhs.allocator_;
+            allocator_ = std::move(rhs.allocator_);
 
-            rhs.capacity_ = 0;
-            rhs.size_ = 0;
-            rhs.elements_ = nullptr;
+            rhs.default_();
 
             return *this;
         }
         
-        void swap(vector& other)
+        void swap(vector& other) noexcept
         {
             using std::swap;
-            swap(*this, other);
+            swap(capacity_, other.capacity_);
+            swap(size_, other.size_);
+            swap(elements_, other.elements_);
+            swap(allocator_, other.allocator_);
         }
 
         friend void swap(vector& first, vector& second) noexcept
         {
             using std::swap;
-            swap(first.capacity_, second.capacity_);
-            swap(first.size_, second.size_);
-            swap(first.elements_, second.elements_);
-            swap(first.allocator_, second.allocator_); // not sure if this might be an issue with [[no_unique_address]]
+            first.swap(second);
         }
 
         ~vector() noexcept
         {
-            clear();
-            allocator_.dealloc(elements_);
+            destroy_and_deallocate_();
         }
 
         void push_back(const T& element)
@@ -252,11 +241,13 @@ namespace pky
         pointer data() noexcept { return elements_; }
         const_pointer data() const noexcept { return elements_; }
 
-        // void shrink_to_fit()
-        // {
-        //     if(capacity_ > size_)
-        //         allocator_.dealloc(elements_ + size_);
-        // }
+        void shrink_to_fit()
+        {
+            if(capacity_ <= size_)
+                return;
+            
+            destroy_and_deallocate_();
+        }
 
 
         iterator begin() { return iterator(elements_); }
@@ -291,6 +282,19 @@ namespace pky
         const_reference back() const { return elements_[size_ - 1]; }
     
     private:
+        size_t capacity_{0};
+        size_t size_{0};
+        pointer elements_{nullptr};
+        [[no_unique_address]] Allocator allocator_{};
+    
+    private:
+        // HELPERS
+        void destroy_and_deallocate_()
+        {
+            clear();
+            allocator_.deallocate(elements_);
+        }
+
         void grow_if_needed_()
         {
             if(size_ >= capacity_)
@@ -299,9 +303,8 @@ namespace pky
         
         void reallocate_(size_t new_size)
         {
-            T* temp = allocator_.alloc(new_size);
+            T* temp = allocator_.allocate(new_size);
 
-            // acts as temp size
             size_t i{};
             try
             {
@@ -311,20 +314,53 @@ namespace pky
             catch(...)
             {
                 for (size_t j{0}; j < i; ++j)
-                    allocator_.destroy_at(elements_ + j);
+                    allocator_.destroy_at(temp + j);
                 
-                allocator_.dealloc(temp);
+                allocator_.deallocate(temp);
                 throw;
             }
 
-            for (; i < size_; ++i)
+            for (i = 0; i < size_; ++i)
                 allocator_.destroy_at(elements_ + i);
             
-            allocator_.dealloc(elements_);
+            allocator_.deallocate(elements_);
 
             elements_ = temp;
             capacity_ = new_size;
         }
+
+        template<typename... Args>
+        void construct_all_(Args&&... args)
+        {
+            for(size_t i{}; i < size_; ++i)
+                allocator_.construct_at(elements_ + i, std::forward<Args>(args)...);
+        }
+
+        void construct_from_(const vector& other)
+        {
+            for(size_t i{}; i < size_; ++i)
+                allocator_.construct_at(elements_ + i, other[i]); // possible size indexing issue, idk
+        }
+
+        // TODO: find a better name
+        /**
+         * @brief sets all values to default
+         * @important call this after clearing and deallocating, since this function sets elements_ to nullptr, possibly causing leaks if not used right
+         */
+        void default_()
+        {
+            capacity_ = 0;
+            size_ = 0;
+            elements_ = nullptr;
+        }
+
+        // template<typename Iter, typename... Args>
+        // void construct_from_iter_(Iter iter, Args&&... args)
+        // {
+        //     size_t i{};
+        //     for(const auto& thing : iter)
+        //         allocator_.construct_at(elements_ + i++, thing);
+        // }
 
         template<typename... Args>
         void append_back_(Args&&... args)
@@ -334,10 +370,5 @@ namespace pky
             allocator_.construct_at(elements_ + size_, std::forward<Args>(args)...);
             ++size_;
         }
-
-        size_t capacity_{0};
-        size_t size_{0};
-        pointer elements_{nullptr};
-        [[no_unique_address]] Allocator allocator_{};
     };
 }

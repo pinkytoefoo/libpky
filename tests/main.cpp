@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
     vec1.swap(vec2);
     pky::vector<int> vec3(std::move(vec1));
     pky::vector<int> vec4(3);
-    vec4 = std::move(vec3);
+    vec4 = vec3;
     std::vector<int> v(10);
     pky::vector<int> a(10);
     // try

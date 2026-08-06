@@ -10,6 +10,7 @@ file(GLOB_RECURSE
     include/*.h
 )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(pky STATIC ${LIB_FILES})
 target_include_directories(pky PUBLIC include thirdparty/minunit)
