@@ -187,13 +187,18 @@ namespace pky
             destroy_and_deallocate_();
         }
 
-        template<std::convertible_to<T> U>
-        void push_back(U&& element)
+        void push_back(const_reference element)
         {
-            append_back_(std::forward<U>(element));
+            append_back_(element);
+        }
+
+        void push_back(T&& element)
+        {
+            append_back_(std::move(element));
         }
 
         template<typename... Args>
+        requires std::constructible_from<value_type, Args...>
         reference emplace_back(Args&&... args)
         {
             append_back_(std::forward<Args>(args)...);
