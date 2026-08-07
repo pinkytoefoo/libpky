@@ -187,14 +187,14 @@ namespace pky
             destroy_and_deallocate_();
         }
 
-        template<typename U>
+        template<std::convertible_to<T> U>
         void push_back(U&& element)
         {
             append_back_(std::forward<U>(element));
         }
 
         template<typename... Args>
-        T& emplace_back(Args&&... args)
+        reference emplace_back(Args&&... args)
         {
             append_back_(std::forward<Args>(args)...);
             return back();
@@ -250,7 +250,7 @@ namespace pky
         size_t size() const { return size_; }
         size_t capacity() const { return capacity_; }
 
-        T& at(size_t idx)
+        reference at(size_t idx)
         {
             if(idx >= size_)
                 throw std::out_of_range(std::format("pky::vector<>.at(size_t idx) - idx({}) >= size({})", idx, size_));
@@ -258,7 +258,7 @@ namespace pky
             return elements_[idx];
         }
 
-        const T& at(size_t idx) const
+        const_reference at(size_t idx) const
         {
             if(idx >= size_)
                 throw std::out_of_range(std::format("pky::vector<>.at(size_t idx) - idx({}) >= size({})", idx, size_));
