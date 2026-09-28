@@ -1,46 +1,17 @@
 # libpky
-C++ STL-like library with a focus on optimizing tradeoffs between container size, functionality, and speed. The current containers implemented are
-```cpp
-pky::vector
-pky::unique_ptr
-pky::string
-pky::ifstream
-pky::ofstream
-```
-[Comparison](#Comparison---std-vs-pky)
-[Get started](#Installation)
+C++ STL-like library with a focus on optimizing tradeoffs between container size, functionality, and speed. The current containers implemented are:\
+[`pky::vector`](pkyvector-vs-stdvector)\
+[`pky::unique_ptr`](pkyunique_ptr-vs-stdunique_ptr)\
+[`pky::string`](pkystring-vs-stdstring)\
+[`pky::fstreams`](pkyfstream-vs-stdfstream)
 
-# Installation
-Ensure you have at least CMake 3.10
-
-**Cloning with testing submodules**
-```bash
-git clone --recursive https://github.com/pinkytoefoo/libpky.git
-```
-
-**Building with `ninja`**
-```bash
-mkdir build && cd build
-cmake .. -G Ninja
-ninja
-```
-
-**Run test suite**
-Linux:
-```
-./pky_test
-```
-
-PowerShell / Windows:
-```
-.\pky_test
-```
+### Sections
+[Comparison](#comparison---std-vs-pky)\
+[Get started](#installation)\
+[Philosophy](#philosophy)
 
 # Comparison - std vs pky
-
-`libpky` aims to provide STL-like containers and utilities while making different tradeoffs between **container size, functionality, and implementation complexity**. It is not intended to be a drop-in replacement for the C++ standard library.
-
-The following table compares the currently implemented `pky` types with their closest standard-library equivalents:
+The following table compares the currently implemented `pky` types with their closest standard-library equivalents
 
 | `pky` | Standard library | Purpose |
 |---|---|---|
@@ -49,6 +20,145 @@ The following table compares the currently implemented `pky` types with their cl
 | `pky::string` | `std::string` | Dynamically allocated null-terminated strings |
 | `pky::ifstream` | `std::ifstream` | File input |
 | `pky::ofstream` | `std::ofstream` | File output |
+
+## `pky::vector` vs `std::vector`
+
+`pky::vector` is a dynamically sized contiguous container modeled after `std::vector`. The implementation focuses on providing the core functionality while keeping the implementation relatively small and exposing the allocator as part of the design.
+
+| Feature | `pky::vector` | `std::vector` |
+|---|---:|---:|
+| Contiguous storage | Yes | Yes |
+| Dynamic growth | Yes | Yes |
+| `push_back()` | Yes | Yes |
+| `emplace_back()` | Yes | Yes |
+| `pop_back()` | Yes | Yes |
+| `clear()` | Yes | Yes |
+| `reserve()` | Yes | Yes |
+| `shrink_to_fit()` | Yes | Yes |
+| `size()` | Yes | Yes |
+| `capacity()` | Yes | Yes |
+| `data()` | Yes | Yes |
+| `operator[]` | Yes | Yes |
+| Bounds-checked `at()` | Yes | Yes |
+| `front()` / `back()` | Yes | Yes |
+| Iterators | Basic, Forward-Iterator only | Full standard iterator support |
+| Initializer-list construction | Yes | Yes |
+| Copy construction | Yes | Yes |
+| Copy assignment | Yes | Yes |
+| Move construction | Yes | Yes |
+| Move assignment | Yes | Yes |
+| Custom allocator | Yes | Yes |
+| `resize()` | Not implemented | Yes |
+| `insert()` | No | Yes |
+| `erase()` | No | Yes |
+| `assign()` | No | Yes |
+| `swap()` | Yes | Yes |
+| Full standard API | No | Yes |
+
+### Memory management
+
+`pky::vector` uses an allocator abstraction to handle allocation, construction, destruction, and deallocation:
+
+```cpp
+template<typename T>
+struct default_allocator
+{
+    using value_type = T;
+    using pointer = T*;
+
+    [[nodiscard]] pointer allocate(size_t count);
+    
+    template<typename... Args>
+    void construct_at(pointer ptr, Args&&... args);
+
+    void destroy_at(pointer ptr);
+    void deallocate(pointer ptr);
+};
+```
+
+This allows the vector's memory-management implementation to be separated from the container itself and allows a custom allocator to be supplied:
+
+```cpp
+pky::vector<T, CustomAllocator>
+```
+
+The allocator also uses `[[no_unique_address]]`, allowing an empty allocator to potentially require no additional storage within the vector object.
+
+### Growth strategy
+
+When additional capacity is required, `pky::vector` grows its capacity by approximately 2x:
+
+```cpp
+if(size_ >= capacity_)
+    reallocate_(capacity_ != 0 ? capacity_ * 2 : 1);
+```
+
+This provides amortized constant-time growth for `push_back()` and `emplace_back()`, assuming the element type can be moved or copied appropriately.
+
+`reserve()` can also be used to explicitly allocate additional capacity:
+
+```cpp
+pky::vector<int> values;
+
+values.reserve(100);
+```
+
+### Object lifetime management
+
+Unlike a simple dynamically allocated array, `pky::vector` separately manages storage and object lifetime.
+
+Elements are constructed using the allocator:
+
+```cpp
+allocator_.construct_at(elements_ + size_, ...);
+```
+
+and explicitly destroyed when removed or when the vector is destroyed:
+
+```cpp
+allocator_.destroy_at(elements_ + size_);
+```
+
+During reallocation, existing elements are moved using `std::move_if_noexcept()` where appropriate, to avoid copying wherever possible.
+
+This allows `pky::vector` to support types that are not trivially constructible or destructible.
+
+### Iterator support
+
+`pky::vector` currently provides a basic iterator capable of:
+
+- Incrementing and decrementing.
+- Dereferencing.
+- Member access through `operator->`.
+- Indexing.
+- Equality and inequality comparisons.
+
+Example:
+
+```cpp
+pky::vector<int> values{1, 2, 3, 4};
+
+for(auto it = values.begin(); it != values.end(); ++it)
+{
+    std::cout << *it << '\n';
+}
+```
+
+The current iterator is intentionally smaller than the iterator interface provided by `std::vector`. It does not currently implement the complete set of standard iterator operations and iterator traits.
+
+### Current `pky::vector` tradeoffs
+
+- Provides the core functionality expected from a dynamic array.
+- Uses contiguous storage like `std::vector`.
+- Supports custom allocators.
+- Explicitly manages object construction and destruction.
+- Uses geometric growth when capacity is exhausted.
+- Supports copy and move semantics.
+- Currently has a smaller API than `std::vector`.
+- `resize()`, `insert()`, `erase()`, and several other standard operations are not currently implemented.
+- The iterator implementation is currently more limited than the standard `std::vector` iterator.
+
+The main difference is therefore **scope rather than container model**: both containers provide dynamically sized contiguous storage, but `pky::vector` currently implements a smaller subset of the functionality offered by `std::vector`.
 
 ## `pky::string` vs `std::string`
 
@@ -136,7 +246,7 @@ The `pky` file-stream implementation is currently much smaller than the standard
 
 The goal of `libpky` is not to reproduce every feature of the C++ standard library. Instead, it explores what can be achieved by providing smaller, more focused implementations.
 
-This results in a general tradeoff:
+The general results in tradeoffs:
 
 | | `pky` | `std` |
 |---|---|---|
@@ -148,4 +258,45 @@ This results in a general tradeoff:
 | Portability expectations | Project-dependent | Broadly standardized |
 
 I will continue to improve `libpky`, and plan on adding additional benchmarks and measurements, such as **container size, allocation behavior, execution time, runtime performance, generated meta-code**, to compare with the standard library.
+
+# Philosophy
+`libpky` is NOT trying to replace the standard library. The standard library is filled with a vast amount of important containers,
+helper functions, template specializations, exception-safe moving, and on and on. `libpky` is a way for me to gain a solid foundation
+on C++.
+
+With that said, I am trying to mimick most of the standard library as possible, at least in terms of library design and following the standard.
+Some things I keep in mind when making `libpky` are
+- Exception safety
+- Rule-of-5 and 
+- Object sizing
+- Runtime optimizations
+- Simplicity, will still being functional
+- Standardization and library design (`[[no_discard]]`, iterators, allocators, using `noexcept` for move constructors / assignment operators, difference between `[]` and `.at()`, etc.)
+- Lastly, could I use this in another project without having to worry about its implementation
+
+# Installation
+Ensure you have at least CMake 3.10
+
+**Cloning with testing submodules**
+```bash
+git clone --recursive https://github.com/pinkytoefoo/libpky.git
+```
+
+**Building with `ninja`**
+```bash
+mkdir build && cd build
+cmake .. -G Ninja
+ninja
+```
+
+**Run test suite**
+Linux:
+```
+./pky_test
+```
+
+PowerShell / Windows:
+```
+.\pky_test
+```
 
