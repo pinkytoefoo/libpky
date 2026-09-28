@@ -147,5 +147,5 @@ This results in a general tradeoff:
 | Standard compatibility | Limited | Standardized |
 | Portability expectations | Project-dependent | Broadly standardized |
 
-As `libpky` develops, additional benchmarks and measurements can be added here to compare things such as **object size, allocation behavior, execution time, and generated code**. Until those measurements are available, performance or memory-usage differences should not be assumed solely from the implementations.
+I will continue to improve `libpky`, and plan on adding additional benchmarks and measurements, such as **container size, allocation behavior, execution time, runtime performance, generated meta-code**, to compare with the standard library.
 
